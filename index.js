@@ -21,7 +21,7 @@ app.use(express.json()) // for JSON bodies
 app.use(express.urlencoded({ extended: true })) // for URL-encoded bodies
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Sense')
 })
 
 app.post('/shorten', async (req, res) => {
@@ -154,7 +154,7 @@ app.get('/:shortCode', async (req, res) => {
   }
 })
 
-app.get('/visit/:shortCode', async (req, res) => {
+app.get('/stat/:shortCode', async (req, res) => {
   const { shortCode } = req.params
   const queryResult = await client.query(
     'SELECT * FROM visit WHERE short_code = $1',
