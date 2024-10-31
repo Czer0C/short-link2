@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
   res.send('Sense')
 })
 
-app.post('/shorten', async (req, res) => {
+app.post('/slash', async (req, res) => {
   const { url } = req.body
 
   if (typeof url === 'string') {
@@ -58,8 +58,10 @@ app.post('/shorten', async (req, res) => {
   }
 })
 
-app.put('/shorten/:shortCode', async (req, res) => {
+app.put('/slash/:shortCode', async (req, res) => {
+
   const { shortCode } = req.params
+  
   const { url } = req.body
 
   const existed = await client.query(
@@ -84,7 +86,7 @@ app.put('/shorten/:shortCode', async (req, res) => {
   }
 })
 
-app.delete('/shorten/:shortCode', async (req, res) => {
+app.delete('/slash/:shortCode', async (req, res) => {
   const { shortCode } = req.params
 
   const existed = await client.query(
@@ -107,7 +109,7 @@ app.delete('/shorten/:shortCode', async (req, res) => {
   }
 })
 
-app.get('/shorten/:shortCode', async (req, res) => {
+app.get('/slash/:shortCode', async (req, res) => {
   const { shortCode } = req.params
 
   const queryResult = await client.query(
