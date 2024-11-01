@@ -5,5 +5,7 @@
 - TypeScript
 - Rate Limiting
 - Cache
+- Logging
+- Grafana/Prometheus
 - Scaling
 - Optimizing
