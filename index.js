@@ -1,6 +1,7 @@
 //express
 
 const express = require('express')
+const cors = require('cors')
 
 const postgres = require('pg')
 
@@ -17,7 +18,10 @@ client.connect()
 
 const app = express()
 
-app.use(express.json()) // for JSON bodies
+app.use(cors())
+
+app.use(express.json())
+// for JSON bodies
 app.use(express.urlencoded({ extended: true })) // for URL-encoded bodies
 
 app.get('/', (req, res) => {
@@ -59,9 +63,8 @@ app.post('/slash', async (req, res) => {
 })
 
 app.put('/slash/:shortCode', async (req, res) => {
-
   const { shortCode } = req.params
-  
+
   const { url } = req.body
 
   const existed = await client.query(
@@ -156,13 +159,34 @@ app.get('/:shortCode', async (req, res) => {
   }
 })
 
+app.get('/summary/visit', async (req, res) => {
+  const queryResult = await client.query('SELECT * FROM visit')
+
+  const list = queryResult?.rows
+
+  const grouped = list.reduce((acc, cur) => {
+    if (acc[cur.short_code]) {
+      acc[cur.short_code]++
+    } else {
+      acc[cur.short_code] = 1
+    }
+
+    return acc
+  }, {})
+
+  res.send({ grouped, list })
+})
+
 app.get('/stat/:shortCode', async (req, res) => {
   const { shortCode } = req.params
+
   const queryResult = await client.query(
     'SELECT * FROM visit WHERE short_code = $1',
     [shortCode]
   )
+
   const existed = queryResult?.rows
+
   if (existed) {
     res.send(existed)
   } else {
