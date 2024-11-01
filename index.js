@@ -1,6 +1,7 @@
 //express
 
 const express = require('express')
+
 const cors = require('cors')
 
 const postgres = require('pg')
@@ -15,6 +16,32 @@ const client = new postgres.Client({
 })
 
 client.connect()
+
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1] // Extract token from 'Bearer <token>' format
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: 'Access denied. No token provided.' })
+  }
+
+  if (token === 'zenzeIsMoe') {
+    next()
+  } else {
+    res.status(400).json({ message: 'Invalid token.' })
+  }
+
+  // try {
+  //   const decoded = jwt.verify(token, 'zenzeIsMoe')
+
+  //   req.user = decoded
+
+  //   next()
+  // } catch (error) {
+  //   res.status(400).json({ message: 'Invalid token.' })
+  // }
+}
 
 const app = express()
 
@@ -129,7 +156,7 @@ app.get('/slash/:shortCode', async (req, res) => {
   }
 })
 
-app.get('/links', async (req, res) => {
+app.get('/links', authMiddleware, async (req, res) => {
   const links = await client.query('SELECT * FROM link')
 
   res.send(links.rows)
@@ -191,6 +218,19 @@ app.get('/stat/:shortCode', async (req, res) => {
     res.send(existed)
   } else {
     res.status(404).send('Not found')
+  }
+})
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body
+
+  if (username === 'zenze' && password === 'sense') {
+    res.send({
+      message: 'Login successfully',
+      token: 'pendingToken',
+    })
+  } else {
+    res.status(401).send('Unauthorized')
   }
 })
 
