@@ -51,11 +51,11 @@ app.use(express.json())
 // for JSON bodies
 app.use(express.urlencoded({ extended: true })) // for URL-encoded bodies
 
-app.get('/', (req, res) => {
+app.get('/', authMiddleware, (req, res) => {
   res.send('Sense')
 })
 
-app.post('/slash', async (req, res) => {
+app.post('/slash', authMiddleware, async (req, res) => {
   const { url } = req.body
 
   if (typeof url === 'string') {
@@ -89,7 +89,7 @@ app.post('/slash', async (req, res) => {
   }
 })
 
-app.put('/slash/:shortCode', async (req, res) => {
+app.put('/slash/:shortCode', authMiddleware, async (req, res) => {
   const { shortCode } = req.params
 
   const { url } = req.body
@@ -116,7 +116,7 @@ app.put('/slash/:shortCode', async (req, res) => {
   }
 })
 
-app.delete('/slash/:shortCode', async (req, res) => {
+app.delete('/slash/:shortCode', authMiddleware, async (req, res) => {
   const { shortCode } = req.params
 
   const existed = await client.query(
@@ -139,7 +139,7 @@ app.delete('/slash/:shortCode', async (req, res) => {
   }
 })
 
-app.get('/slash/:shortCode', async (req, res) => {
+app.get('/slash/:shortCode', authMiddleware, async (req, res) => {
   const { shortCode } = req.params
 
   const queryResult = await client.query(
@@ -162,7 +162,7 @@ app.get('/links', authMiddleware, async (req, res) => {
   res.send(links.rows)
 })
 
-app.get('/:shortCode', async (req, res) => {
+app.get('/:shortCode', authMiddleware, async (req, res) => {
   const { shortCode } = req.params
 
   const queryResult = await client.query(
@@ -186,7 +186,7 @@ app.get('/:shortCode', async (req, res) => {
   }
 })
 
-app.get('/summary/visit', async (req, res) => {
+app.get('/summary/visit', authMiddleware, async (req, res) => {
   const queryResult = await client.query('SELECT * FROM visit')
 
   const list = queryResult?.rows
@@ -204,7 +204,7 @@ app.get('/summary/visit', async (req, res) => {
   res.send({ grouped, list })
 })
 
-app.get('/stat/:shortCode', async (req, res) => {
+app.get('/stat/:shortCode', authMiddleware, async (req, res) => {
   const { shortCode } = req.params
 
   const queryResult = await client.query(
