@@ -1,7 +1,7 @@
 # TODO
 
 - ~~**Docker**~~
-- **Logging**
+- ~~**Logging**~~
 - **Grafana/Prometheus**
 - split server
 - Rate Limiting
