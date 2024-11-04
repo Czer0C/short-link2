@@ -23,6 +23,10 @@ yarn.lock
 *.pem
 /temp
 
+# logs
+/logs
+*.log
+
 # debug
 npm-debug.log*
 yarn-debug.log*

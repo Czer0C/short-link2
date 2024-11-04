@@ -2,6 +2,23 @@
 
 const express = require('express')
 
+const winston = require('winston')
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'sense' },
+  transports: [
+    new winston.transports.Console({}),
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+  ],
+
+  exceptionHandlers: [
+    new winston.transports.File({ filename: 'logs/exceptions.log' }),
+  ],
+})
+
 const cors = require('cors')
 
 const postgres = require('pg')
@@ -51,6 +68,11 @@ app.use(express.json())
 // for JSON bodies
 app.use(express.urlencoded({ extended: true })) // for URL-encoded bodies
 
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`)
+  next()
+})
+
 app.get('/', authMiddleware, (req, res) => {
   res.send('Sense')
 })
@@ -77,12 +99,24 @@ app.post('/slash', authMiddleware, async (req, res) => {
         [id, url, shortCode, timeNow, timeNow]
       )
 
+      const message =
+        'URL created successfully with URL ' +
+        url +
+        ' and short code ' +
+        shortCode
+
+      logger.info(makeLog(req, res, 'info', message))
+
       res.status(201).send({
-        message: 'URL created successfully',
+        message,
         data: newRow,
       })
     }
   } else {
+    const message = 'Invalid URL'
+
+    logger.error(makeLog(req, res, 'error', message))
+
     res.status(400).send('Invalid URL')
 
     return
@@ -112,6 +146,10 @@ app.put('/slash/:shortCode', authMiddleware, async (req, res) => {
       data: updateRow,
     })
   } else {
+    const message = 'Short Code Not Found'
+
+    logger.error(makeLog(req, res, 'error', message))
+
     res.status(404).send('Short Code Not Found')
   }
 })
@@ -130,12 +168,18 @@ app.delete('/slash/:shortCode', authMiddleware, async (req, res) => {
       [shortCode]
     )
 
+    logger.info(makeLog(req, res, 'info', 'URL deleted successfully'))
+
     res.send({
       message: 'URL deleted successfully',
       data: deleteRow,
     })
   } else {
-    res.status(404).send('Not found')
+    const message = 'Short Code Not Found'
+
+    logger.error(makeLog(req, res, 'error', message))
+
+    res.status(404).send(message)
   }
 })
 
@@ -152,6 +196,8 @@ app.get('/slash/:shortCode', authMiddleware, async (req, res) => {
   if (existed) {
     res.send(existed)
   } else {
+    logger.error(makeLog(req, res, 'error', 'Not found'))
+
     res.status(404).send('Not found')
   }
 })
@@ -160,6 +206,33 @@ app.get('/links', authMiddleware, async (req, res) => {
   const links = await client.query('SELECT * FROM link')
 
   res.send(links.rows)
+})
+
+app.get('/summary', authMiddleware, async (req, res) => {
+  const queryResult = await client.query('SELECT * FROM visit')
+
+  const list = queryResult?.rows
+
+  const grouped = list.reduce((acc, cur) => {
+    if (acc[cur.short_code]) {
+      acc[cur.short_code]++
+    } else {
+      acc[cur.short_code] = 1
+    }
+
+    return acc
+  }, {})
+
+  logger.info(
+    makeLog(
+      req,
+      res,
+      'info',
+      JSON.stringify({ grouped, list: list.length }, null, 2)
+    )
+  )
+
+  res.send({ grouped, list })
 })
 
 app.get('/:shortCode', authMiddleware, async (req, res) => {
@@ -182,26 +255,12 @@ app.get('/:shortCode', authMiddleware, async (req, res) => {
 
     res.redirect(existed.origin)
   } else {
-    res.status(404).send('Not found')
+    const msg = `Short code ${shortCode} not found`
+
+    logger.error(makeLog(req, res, 'error', msg))
+
+    res.status(404).send(msg)
   }
-})
-
-app.get('/summary/visit', authMiddleware, async (req, res) => {
-  const queryResult = await client.query('SELECT * FROM visit')
-
-  const list = queryResult?.rows
-
-  const grouped = list.reduce((acc, cur) => {
-    if (acc[cur.short_code]) {
-      acc[cur.short_code]++
-    } else {
-      acc[cur.short_code] = 1
-    }
-
-    return acc
-  }, {})
-
-  res.send({ grouped, list })
 })
 
 app.get('/stat/:shortCode', authMiddleware, async (req, res) => {
@@ -215,8 +274,19 @@ app.get('/stat/:shortCode', authMiddleware, async (req, res) => {
   const existed = queryResult?.rows
 
   if (existed) {
+    logger.info(
+      makeLog(
+        req,
+        res,
+        'info',
+        `Found ${existed.length} visits for short code ${shortCode}`
+      )
+    )
+
     res.send(existed)
   } else {
+    logger.error(makeLog(req, res, 'error', 'Not found'))
+
     res.status(404).send('Not found')
   }
 })
@@ -225,15 +295,30 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body
 
   if (username === 'zenze' && password === 'sense') {
+    logger.info(makeLog(req, res, 'info', 'Login successfully'))
+
     res.send({
       message: 'Login successfully',
       token: 'pendingToken',
     })
   } else {
-    res.status(401).send('Unauthorized')
+    logger.error(makeLog(req, res, 'error', 'Invalid credentials'))
+
+    res.status(401).send('Invalid credentials')
   }
 })
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000')
+})
+
+const makeLog = (req, res, level = 'info', message = '') => ({
+  timestamp: new Date(),
+  level,
+  method: req.method,
+  endpoint: req.originalUrl,
+  status: res.statusCode,
+  response_time_ms: res.getHeader('X-Response-Time') || 0,
+  client_ip: req.ip,
+  message,
 })
