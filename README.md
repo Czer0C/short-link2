@@ -1,11 +1,11 @@
 # TODO
 
-- Docker
+- **Docker**
+- **Logging**
+- **Grafana/Prometheus**
+- Rate Limiting
 - Unit Test
 - TypeScript
-- Rate Limiting
 - Cache
-- Logging
-- Grafana/Prometheus
 - Scaling
 - Optimizing
