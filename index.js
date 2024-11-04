@@ -23,9 +23,7 @@ const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1] // Extract token from 'Bearer <token>' format
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: 'Access denied. No token provided.' })
+    return res.status(401).json({ message: 'Unauthenticated' })
   }
 
   if (token === 'zenzeIsMoe') {
