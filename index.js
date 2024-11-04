@@ -9,7 +9,7 @@ const postgres = require('pg')
 const uuid = require('uuid')
 
 const client = new postgres.Client({
-  host: 'localhost',
+  host: '127.0.0.1',
   port: 5432,
   user: 'postgres',
   password: 'changeme',
