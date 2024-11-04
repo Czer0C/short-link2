@@ -37,10 +37,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3000:3000'
-    # environment:
-    #   - DATABASE_URL=postgresql://user:password@db:5432/your_database
-    # depends_on:
-    #   - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:changeme@postgres:5432/postgres
+    depends_on:
+      - postgres
+    networks:
+      - postgres
 
 networks:
   postgres:
