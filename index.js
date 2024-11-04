@@ -8,12 +8,14 @@ const postgres = require('pg')
 
 const uuid = require('uuid')
 
-const client = new postgres.Client({
-  host: '127.0.0.1',
+const configPostgres = process.env.DATABASE_URL || {
+  host: 'localhost',
   port: 5432,
   user: 'postgres',
   password: 'changeme',
-})
+}
+
+const client = new postgres.Client(configPostgres)
 
 client.connect()
 
