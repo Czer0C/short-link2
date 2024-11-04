@@ -1,6 +1,6 @@
 # TODO
 
-- **Docker**
+- ~~**Docker**~~
 - **Logging**
 - **Grafana/Prometheus**
 - Rate Limiting
