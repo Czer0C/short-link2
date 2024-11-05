@@ -36,6 +36,8 @@ const client = new postgres.Client(configPostgres)
 
 client.connect()
 
+const BYPASS_TOKEN = 'zenzeIsMoe'
+
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1] // Extract token from 'Bearer <token>' format
 
@@ -43,7 +45,7 @@ const authMiddleware = (req, res, next) => {
     return res.status(401).json({ message: 'Unauthenticated' })
   }
 
-  if (token === 'zenzeIsMoe') {
+  if (token === BYPASS_TOKEN) {
     next()
   } else {
     res.status(400).json({ message: 'Invalid token.' })
