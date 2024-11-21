@@ -38,8 +38,17 @@ client.connect()
 
 const BYPASS_TOKEN = 'zenzeIsMoe'
 
+const environment = process.env.NODE_ENV || 'development'
+
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1] // Extract token from 'Bearer <token>' format
+
+  if (environment === 'development') {
+    req.locals = { token }
+
+    next()
+    return
+  }
 
   if (!token) {
     return res.status(401).json({ message: 'Unauthenticated' })
@@ -204,7 +213,9 @@ app.get('/slash/:shortCode', authMiddleware, async (req, res) => {
   }
 })
 
-app.get('/links', authMiddleware, async (req, res) => {
+app.get('/links', authMiddleware, async (req, res, ...rest) => {
+  console.log(req.locals)
+
   const links = await client.query('SELECT * FROM link')
 
   res.send(links.rows)
@@ -235,34 +246,6 @@ app.get('/summary', authMiddleware, async (req, res) => {
   )
 
   res.send({ grouped, list })
-})
-
-app.get('/:shortCode', authMiddleware, async (req, res) => {
-  const { shortCode } = req.params
-
-  const queryResult = await client.query(
-    'SELECT * FROM link WHERE short_code = $1',
-    [shortCode]
-  )
-
-  const existed = queryResult?.rows?.[0]
-
-  if (existed) {
-    const timeNow = new Date()
-
-    const insertVisit = await client.query(
-      'INSERT INTO visit (short_code, time_visit) VALUES ($1, $2)',
-      [existed.short_code, timeNow]
-    )
-
-    res.redirect(existed.origin)
-  } else {
-    const msg = `Short code ${shortCode} not found`
-
-    logger.error(makeLog(req, res, 'error', msg))
-
-    res.status(404).send(msg)
-  }
 })
 
 app.get('/stat/:shortCode', authMiddleware, async (req, res) => {
@@ -307,6 +290,49 @@ app.post('/login', async (req, res) => {
     logger.error(makeLog(req, res, 'error', 'Invalid credentials'))
 
     res.status(401).send('Invalid credentials')
+  }
+})
+
+app.get('/:shortCode', authMiddleware, async (req, res) => {
+  if (req.params.shortCode === 'isxnj1n') {
+    const { token = null } = { ...req?.locals }
+
+    if (token !== BYPASS_TOKEN) {
+      const message = `Unauthorized access to short code ${req.params.shortCode} with token ${token}`
+
+      logger.error(makeLog(req, res, 'error', message))
+      return res.status(404).send('no')
+    }
+  }
+
+  const { shortCode } = req.params
+
+  const queryResult = await client.query(
+    'SELECT * FROM link WHERE short_code = $1',
+    [shortCode]
+  )
+
+  const existed = queryResult?.rows?.[0]
+
+  if (existed) {
+    const timeNow = new Date()
+
+    try {
+      const insertVisit = await client.query(
+        'INSERT INTO visit (short_code, time_visit) VALUES ($1, $2)',
+        [existed.short_code, timeNow]
+      )
+    } catch (error) {
+      logger.error(makeLog(req, res, 'error', error.message))
+    }
+
+    return res.redirect(existed.origin)
+  } else {
+    const msg = `Short code ${shortCode} not found`
+
+    logger.error(makeLog(req, res, 'error', msg))
+
+    res.status(404).send(msg)
   }
 })
 
