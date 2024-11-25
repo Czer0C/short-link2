@@ -9,4 +9,4 @@
 - TypeScript
 - Cache
 - Scaling
-- Optimizing.
+- Optimizing
