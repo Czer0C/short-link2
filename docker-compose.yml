@@ -43,6 +43,7 @@ services:
       - postgres
     networks:
       - postgres
+    restart: unless-stopped
 
 networks:
   postgres:
