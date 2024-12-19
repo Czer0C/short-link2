@@ -307,8 +307,6 @@ app.get('/:shortCode', authMiddleware, async (req, res) => {
 
   const { shortCode } = req.params
 
-  console.log({ shortCode })
-
   const queryResult = await client.query(
     'SELECT * FROM link WHERE short_code = $1',
     [shortCode]
@@ -328,7 +326,12 @@ app.get('/:shortCode', authMiddleware, async (req, res) => {
       logger.error(makeLog(req, res, 'error', error.message))
     }
 
-    return res.redirect(existed.origin)
+    //? http:// or https://
+    const url = `${existed.origin}`.startsWith('http')
+      ? existed.origin
+      : `https://${existed.origin}`
+
+    return res.redirect(url)
   } else {
     const msg = `Short code ${shortCode} not found`
 
