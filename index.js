@@ -307,6 +307,8 @@ app.get('/:shortCode', authMiddleware, async (req, res) => {
 
   const { shortCode } = req.params
 
+  console.log({ shortCode })
+
   const queryResult = await client.query(
     'SELECT * FROM link WHERE short_code = $1',
     [shortCode]
