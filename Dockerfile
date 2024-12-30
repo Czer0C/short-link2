@@ -13,8 +13,8 @@ RUN npm install --production
 # Copy the rest of the application code
 COPY . .
 
-ENV DATABASE_URL=postgresql://postgres:changeme@postgres:5432/postgres
-ENV NODE_ENV=production
+# ENV DATABASE_URL=postgresql://postgres:changeme@postgres:5432/postgres
+# ENV NODE_ENV=production
 
 # Expose the port that the app runs on
 EXPOSE 3000
