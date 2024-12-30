@@ -36,9 +36,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
-    # environment:
-    #   - DATABASE_URL=postgresql://admin:admin123@postgres:5432/postgres
+      - '${SERVICE_PORT}:${SERVICE_PORT}'
+      # - '3000:3000'
+    environment:
+      - POSTGRES_HOST=postgresql
     depends_on:
       - postgres
     networks:

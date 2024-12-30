@@ -4,6 +4,8 @@ const winston = require('winston')
 
 require('dotenv').config()
 
+const app = express()
+
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
@@ -25,7 +27,7 @@ const postgres = require('pg')
 
 const uuid = require('uuid')
 
-const configPostgres = process.env.PGADMIN_CONNECTION_URI || {
+const configPostgres = {
   host: process.env.POSTGRES_HOST,
   port: 5432,
   user: process.env.POSTGRES_USER,
@@ -38,20 +40,24 @@ try {
   client = new postgres.Client(configPostgres)
 
   client.connect()
+} catch (error) {
+  console.log(error)
+}
 
-  const BYPASS_TOKEN = 'zenzeIsMoe'
+const BYPASS_TOKEN = 'zenzeIsMoe'
 
-  const environment = process.env.NODE_ENV || 'development'
+const environment = process.env.NODE_ENV || 'development'
 
-  const authMiddleware = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1] // Extract token from 'Bearer <token>' format
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1] // Extract token from 'Bearer <token>' format
 
-    if (environment === 'development') {
-      req.locals = { token }
+  try {
+    // if (environment === 'development') {
+    //   req.locals = { token }
 
-      next()
-      return
-    }
+    //   next()
+    //   return
+    // }
 
     if (!token) {
       return res.status(401).json({ message: 'Unauthenticated' })
@@ -62,303 +68,302 @@ try {
     } else {
       res.status(400).json({ message: 'Invalid token.' })
     }
-
-    // try {
-    //   const decoded = jwt.verify(token, 'zenzeIsMoe')
-
-    //   req.user = decoded
-
-    //   next()
-    // } catch (error) {
-    //   res.status(400).json({ message: 'Invalid token.' })
-    // }
+  } catch (error) {
+    console.log(error)
   }
 
-  const app = express()
+  // try {
+  //   const decoded = jwt.verify(token, 'zenzeIsMoe')
 
-  app.use(cors())
+  //   req.user = decoded
 
-  app.use(express.json())
-  // // for JSON bodies
-  app.use(express.urlencoded({ extended: true })) // for URL-encoded bodies
+  //   next()
+  // } catch (error) {
+  //   res.status(400).json({ message: 'Invalid token.' })
+  // }
+}
 
-  app.use((req, res, next) => {
-    logger.info(`${req.method} ${req.url}`)
-    next()
-  })
+app.use(cors())
 
-  app.get('/', authMiddleware, (req, res) => {
-    res.send('Sense')
-  })
+app.use(express.json())
+// for JSON bodies
+app.use(express.urlencoded({ extended: true })) // for URL-encoded bodies
 
-  app.post('/slash', authMiddleware, async (req, res) => {
-    const { url } = req.body
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`)
+  next()
+})
 
-    if (typeof url === 'string') {
-      const existed = await client.query(
-        'SELECT * FROM link WHERE origin = $1',
-        [url]
-      )
+app.get('/', (req, res) => {
+  res.send('Sense')
+})
 
-      if (existed?.rows?.[0]) {
-        res.status(400).send('URL already exists')
-      } else {
-        const timeNow = new Date()
+app.post('/slash', authMiddleware, async (req, res) => {
+  const { url } = req.body
 
-        const shortCode = Math.random().toString(36).substring(6)
-
-        const id = uuid.v4()
-
-        const newRow = await client.query(
-          'INSERT INTO link (id, origin, short_code, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)',
-          [id, url, shortCode, timeNow, timeNow]
-        )
-
-        const message =
-          'URL created successfully with URL ' +
-          url +
-          ' and short code ' +
-          shortCode
-
-        logger.info(makeLog(req, res, 'info', message))
-
-        res.status(201).send({
-          message,
-          data: newRow,
-        })
-      }
-    } else {
-      const message = 'Invalid URL'
-
-      logger.error(makeLog(req, res, 'error', message))
-
-      res.status(400).send('Invalid URL')
-
-      return
-    }
-  })
-
-  app.put('/slash/:shortCode', authMiddleware, async (req, res) => {
-    const { shortCode } = req.params
-
-    const { url } = req.body
-
-    const existed = await client.query(
-      'SELECT * FROM link WHERE short_code = $1',
-      [shortCode]
-    )
+  if (typeof url === 'string') {
+    const existed = await client.query('SELECT * FROM link WHERE origin = $1', [
+      url,
+    ])
 
     if (existed?.rows?.[0]) {
+      res.status(400).send('URL already exists')
+    } else {
       const timeNow = new Date()
 
-      const updateRow = await client.query(
-        'UPDATE link SET origin = $1, updated_at = $2 WHERE short_code = $3',
-        [url, timeNow, shortCode]
+      const shortCode = Math.random().toString(36).substring(6)
+
+      const id = uuid.v4()
+
+      const newRow = await client.query(
+        'INSERT INTO link (id, origin, short_code, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)',
+        [id, url, shortCode, timeNow, timeNow]
       )
 
-      res.send({
-        message: 'URL updated successfully',
-        data: updateRow,
+      const message =
+        'URL created successfully with URL ' +
+        url +
+        ' and short code ' +
+        shortCode
+
+      logger.info(makeLog(req, res, 'info', message))
+
+      res.status(201).send({
+        message,
+        data: newRow,
       })
-    } else {
-      const message = 'Short Code Not Found'
-
-      logger.error(makeLog(req, res, 'error', message))
-
-      res.status(404).send('Short Code Not Found')
     }
-  })
+  } else {
+    const message = 'Invalid URL'
 
-  app.delete('/slash/:shortCode', authMiddleware, async (req, res) => {
-    const { shortCode } = req.params
+    logger.error(makeLog(req, res, 'error', message))
 
-    const existed = await client.query(
-      'SELECT * FROM link WHERE short_code = $1',
+    res.status(400).send('Invalid URL')
+
+    return
+  }
+})
+
+app.put('/slash/:shortCode', authMiddleware, async (req, res) => {
+  const { shortCode } = req.params
+
+  const { url } = req.body
+
+  const existed = await client.query(
+    'SELECT * FROM link WHERE short_code = $1',
+    [shortCode]
+  )
+
+  if (existed?.rows?.[0]) {
+    const timeNow = new Date()
+
+    const updateRow = await client.query(
+      'UPDATE link SET origin = $1, updated_at = $2 WHERE short_code = $3',
+      [url, timeNow, shortCode]
+    )
+
+    res.send({
+      message: 'URL updated successfully',
+      data: updateRow,
+    })
+  } else {
+    const message = 'Short Code Not Found'
+
+    logger.error(makeLog(req, res, 'error', message))
+
+    res.status(404).send('Short Code Not Found')
+  }
+})
+
+app.delete('/slash/:shortCode', authMiddleware, async (req, res) => {
+  const { shortCode } = req.params
+
+  const existed = await client.query(
+    'SELECT * FROM link WHERE short_code = $1',
+    [shortCode]
+  )
+
+  if (existed?.rows?.[0]) {
+    const deleteRow = await client.query(
+      'DELETE FROM link WHERE short_code = $1',
       [shortCode]
     )
 
-    if (existed?.rows?.[0]) {
-      const deleteRow = await client.query(
-        'DELETE FROM link WHERE short_code = $1',
-        [shortCode]
-      )
+    logger.info(makeLog(req, res, 'info', 'URL deleted successfully'))
 
-      logger.info(makeLog(req, res, 'info', 'URL deleted successfully'))
+    res.send({
+      message: 'URL deleted successfully',
+      data: deleteRow,
+    })
+  } else {
+    const message = 'Short Code Not Found'
 
-      res.send({
-        message: 'URL deleted successfully',
-        data: deleteRow,
-      })
-    } else {
-      const message = 'Short Code Not Found'
+    logger.error(makeLog(req, res, 'error', message))
 
-      logger.error(makeLog(req, res, 'error', message))
+    res.status(404).send(message)
+  }
+})
 
-      res.status(404).send(message)
-    }
-  })
+app.get('/slash/:shortCode', authMiddleware, async (req, res) => {
+  const { shortCode } = req.params
 
-  app.get('/slash/:shortCode', authMiddleware, async (req, res) => {
-    const { shortCode } = req.params
+  const queryResult = await client.query(
+    'SELECT * FROM link WHERE short_code = $1',
+    [shortCode]
+  )
 
-    const queryResult = await client.query(
-      'SELECT * FROM link WHERE short_code = $1',
-      [shortCode]
-    )
+  const existed = queryResult?.rows?.[0]
 
-    const existed = queryResult?.rows?.[0]
+  if (existed) {
+    res.send(existed)
+  } else {
+    logger.error(makeLog(req, res, 'error', 'Not found'))
 
-    if (existed) {
-      res.send(existed)
-    } else {
-      logger.error(makeLog(req, res, 'error', 'Not found'))
+    res.status(404).send('Not found')
+  }
+})
 
-      res.status(404).send('Not found')
-    }
-  })
-
-  app.get('/links', authMiddleware, async (req, res, ...rest) => {
-    console.log(req.locals)
-
+app.get('/links', authMiddleware, async (req, res, ...rest) => {
+  try {
     const links = await client.query('SELECT * FROM link')
-
     res.send(links.rows)
-  })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('Internal Server Error')
+  }
+})
 
-  app.get('/summary', authMiddleware, async (req, res) => {
-    const queryResult = await client.query('SELECT * FROM visit')
+app.get('/summary', authMiddleware, async (req, res) => {
+  const queryResult = await client.query('SELECT * FROM visit')
 
-    const list = queryResult?.rows
+  const list = queryResult?.rows
 
-    const grouped = list.reduce((acc, cur) => {
-      if (acc[cur.short_code]) {
-        acc[cur.short_code]++
-      } else {
-        acc[cur.short_code] = 1
-      }
+  const grouped = list.reduce((acc, cur) => {
+    if (acc[cur.short_code]) {
+      acc[cur.short_code]++
+    } else {
+      acc[cur.short_code] = 1
+    }
 
-      return acc
-    }, {})
+    return acc
+  }, {})
 
+  logger.info(
+    makeLog(
+      req,
+      res,
+      'info',
+      JSON.stringify({ grouped, list: list.length }, null, 2)
+    )
+  )
+
+  res.send({ grouped, list })
+})
+
+app.get('/stat/:shortCode', authMiddleware, async (req, res) => {
+  const { shortCode } = req.params
+
+  const queryResult = await client.query(
+    'SELECT * FROM visit WHERE short_code = $1',
+    [shortCode]
+  )
+
+  const existed = queryResult?.rows
+
+  if (existed) {
     logger.info(
       makeLog(
         req,
         res,
         'info',
-        JSON.stringify({ grouped, list: list.length }, null, 2)
+        `Found ${existed.length} visits for short code ${shortCode}`
       )
     )
 
-    res.send({ grouped, list })
-  })
+    res.send(existed)
+  } else {
+    logger.error(makeLog(req, res, 'error', 'Not found'))
 
-  app.get('/stat/:shortCode', authMiddleware, async (req, res) => {
-    const { shortCode } = req.params
+    res.status(404).send('Not found')
+  }
+})
 
-    const queryResult = await client.query(
-      'SELECT * FROM visit WHERE short_code = $1',
-      [shortCode]
-    )
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body
 
-    const existed = queryResult?.rows
+  if (username === 'zenze' && password === 'sense') {
+    logger.info(makeLog(req, res, 'info', 'Login successfully'))
 
-    if (existed) {
-      logger.info(
-        makeLog(
-          req,
-          res,
-          'info',
-          `Found ${existed.length} visits for short code ${shortCode}`
-        )
+    res.send({
+      message: 'Login successfully',
+      token: 'pendingToken',
+    })
+  } else {
+    logger.error(makeLog(req, res, 'error', 'Invalid credentials'))
+
+    res.status(401).send('Invalid credentials')
+  }
+})
+
+app.get('/:shortCode', authMiddleware, async (req, res) => {
+  if (req.params.shortCode === 'isxnj1n') {
+    const { token = null } = { ...req?.locals }
+
+    if (token !== BYPASS_TOKEN) {
+      const message = `Unauthorized access to short code ${req.params.shortCode} with token ${token}`
+
+      logger.error(makeLog(req, res, 'error', message))
+      return res.status(404).send('no')
+    }
+  }
+
+  const { shortCode } = req.params
+
+  const queryResult = await client.query(
+    'SELECT * FROM link WHERE short_code = $1',
+    [shortCode]
+  )
+
+  const existed = queryResult?.rows?.[0]
+
+  if (existed) {
+    const timeNow = new Date()
+
+    try {
+      const insertVisit = await client.query(
+        'INSERT INTO visit (short_code, time_visit) VALUES ($1, $2)',
+        [existed.short_code, timeNow]
       )
-
-      res.send(existed)
-    } else {
-      logger.error(makeLog(req, res, 'error', 'Not found'))
-
-      res.status(404).send('Not found')
-    }
-  })
-
-  app.post('/login', async (req, res) => {
-    const { username, password } = req.body
-
-    if (username === 'zenze' && password === 'sense') {
-      logger.info(makeLog(req, res, 'info', 'Login successfully'))
-
-      res.send({
-        message: 'Login successfully',
-        token: 'pendingToken',
-      })
-    } else {
-      logger.error(makeLog(req, res, 'error', 'Invalid credentials'))
-
-      res.status(401).send('Invalid credentials')
-    }
-  })
-
-  app.get('/:shortCode', authMiddleware, async (req, res) => {
-    if (req.params.shortCode === 'isxnj1n') {
-      const { token = null } = { ...req?.locals }
-
-      if (token !== BYPASS_TOKEN) {
-        const message = `Unauthorized access to short code ${req.params.shortCode} with token ${token}`
-
-        logger.error(makeLog(req, res, 'error', message))
-        return res.status(404).send('no')
-      }
+    } catch (error) {
+      logger.error(makeLog(req, res, 'error', error.message))
     }
 
-    const { shortCode } = req.params
+    //? http:// or https://
+    const url = `${existed.origin}`.startsWith('http')
+      ? existed.origin
+      : `https://${existed.origin}`
 
-    const queryResult = await client.query(
-      'SELECT * FROM link WHERE short_code = $1',
-      [shortCode]
-    )
+    return res.redirect(url)
+  } else {
+    const msg = `Short code ${shortCode} not found`
 
-    const existed = queryResult?.rows?.[0]
+    logger.error(makeLog(req, res, 'error', msg))
 
-    if (existed) {
-      const timeNow = new Date()
+    res.status(404).send(msg)
+  }
+})
 
-      try {
-        const insertVisit = await client.query(
-          'INSERT INTO visit (short_code, time_visit) VALUES ($1, $2)',
-          [existed.short_code, timeNow]
-        )
-      } catch (error) {
-        logger.error(makeLog(req, res, 'error', error.message))
-      }
+app.listen(process.env.SERVICE_PORT, () => {
+  console.log('Server is running on port ' + process.env.SERVICE_PORT)
+})
 
-      //? http:// or https://
-      const url = `${existed.origin}`.startsWith('http')
-        ? existed.origin
-        : `https://${existed.origin}`
-
-      return res.redirect(url)
-    } else {
-      const msg = `Short code ${shortCode} not found`
-
-      logger.error(makeLog(req, res, 'error', msg))
-
-      res.status(404).send(msg)
-    }
-  })
-
-  app.listen(process.env.SERVICE_PORT, () => {
-    console.log('Server is running on port' + process.env.SERVICE_PORT)
-  })
-
-  const makeLog = (req, res, level = 'info', message = '') => ({
-    timestamp: new Date(),
-    level,
-    method: req.method,
-    endpoint: req.originalUrl,
-    status: res.statusCode,
-    response_time_ms: res.getHeader('X-Response-Time') || 0,
-    client_ip: req.ip,
-    message,
-  })
-} catch (error) {
-  console.log(error)
-}
+const makeLog = (req, res, level = 'info', message = '') => ({
+  timestamp: new Date(),
+  level,
+  method: req.method,
+  endpoint: req.originalUrl,
+  status: res.statusCode,
+  response_time_ms: res.getHeader('X-Response-Time') || 0,
+  client_ip: req.ip,
+  message,
+})
