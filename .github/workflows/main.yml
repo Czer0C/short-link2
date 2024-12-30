@@ -13,14 +13,14 @@ jobs:
     steps:
       - name: Create .env File
         run: |
-          echo "POSTGRES_USER=${{ variables.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ variables.POSTGRES_PASSWORD }}" >> .env
-          echo "PGADMIN_DEFAULT_EMAIL=${{ variables.PGADMIN_DEFAULT_EMAIL }}" >> .env
-          echo "PGADMIN_DEFAULT_PASSWORD=${{ variables.PGADMIN_DEFAULT_PASSWORD }}" >> .env
-          echo "PGADMIN_CONNECTION_URI=${{ variables.PGADMIN_CONNECTION_URI }}" >> .env
-          echo "PGADMIN_PORT=${{ variables.PGADMIN_PORT }}" >> .env
-          echo "SERVICE_PORT=${{ variables.SERVICE_PORT }}" >> .env
-          echo "POSTGRES_HOST=${{ variables.POSTGRES_HOST }}" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
+          echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+          echo "PGADMIN_CONNECTION_URI=${{ secrets.PGADMIN_CONNECTION_URI }}" >> .env
+          echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
+          echo "SERVICE_PORT=${{ secrets.SERVICE_PORT }}" >> .env
+          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env
          
       - name: Display .env File (for debug purposes)
         run: cat .env
