@@ -38,13 +38,9 @@ console.log({ configPostgres })
 
 let client
 
-try {
-  client = new postgres.Client(configPostgres)
+client = new postgres.Client(configPostgres)
 
-  client.connect()
-} catch (error) {
-  console.log(error)
-}
+client.connect()
 
 const BYPASS_TOKEN = 'zenzeIsMoe'
 
