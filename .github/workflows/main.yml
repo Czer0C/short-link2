@@ -42,3 +42,11 @@ jobs:
       # Step 4: Verify Docker Compose Installation
       - name: CHECK FILES
         run: ls -a
+      # Step 5: Build and run Docker Compose
+      - name: Build and run Docker Compose
+        run: docker-compose up --build -d
+
+      # Step 6: Tear down Docker Compose
+      - name: Tear down Docker Compose
+        if: always()
+        run: docker-compose down
