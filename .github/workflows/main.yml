@@ -30,14 +30,14 @@ jobs:
       - name: Create .env File
         run: |
           touch .env
-          echo "POSTGRES_USER=admin" >> .env
-          echo "POSTGRES_PASSWORD=admin123" >> .env
-          echo "PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org" >> .env
-          echo "PGADMIN_DEFAULT_PASSWORD=admin123" >> .env
-          echo "PGADMIN_CONNECTION_URI=postgresql://admin:admin123@postgres:5432/postgres" >> .env
-          echo "PGADMIN_PORT=8080" >> .env
-          echo "SERVICE_PORT=5000" >> .env
-          echo "POSTGRES_HOST=localhost" >> .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
+          echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+          echo "PGADMIN_CONNECTION_URI=${{ secrets.PGADMIN_CONNECTION_URI }}" >> .env
+          echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
+          echo "SERVICE_PORT=${{ secrets.SERVICE_PORT }}" >> .env
+          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env
           cat .env
       # Step 4: Verify Docker Compose Installation
       - name: CHECK FILES
