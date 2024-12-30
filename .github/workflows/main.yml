@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 0: check .env
+      - name: Use environment variable
+        run: echo $MY_VAR
+    
       # Step 1: Check out the code
       - name: Checkout code
         uses: actions/checkout@v3
