@@ -37,9 +37,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - '${SERVICE_PORT}:${SERVICE_PORT}'
-      # - '3000:3000'
     environment:
-      - POSTGRES_HOST=postgresql
+      - POSTGRES_HOST=postgres
     depends_on:
       - postgres
     networks:

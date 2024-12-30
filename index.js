@@ -34,6 +34,8 @@ const configPostgres = {
   password: process.env.POSTGRES_PASSWORD,
 }
 
+console.log(configPostgres)
+
 let client
 
 try {
