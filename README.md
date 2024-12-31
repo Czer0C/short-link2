@@ -6,5 +6,4 @@
 - Unit Test
 - TypeScript
 - Cache
-- Scaling
 - Optimizing
