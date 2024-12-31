@@ -2,9 +2,17 @@ name: CI/CD with Docker Compose
 
 on:
   push:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - 'examples/**'
     branches:
       - main # Trigger the workflow on pushes to the 'main' branch
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - 'examples/**'
 
 jobs:
   build-and-deploy:
@@ -30,14 +38,7 @@ jobs:
       - name: Create .env File
         run: |
           touch .env
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-          echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
-          echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
-          echo "PGADMIN_CONNECTION_URI=${{ secrets.PGADMIN_CONNECTION_URI }}" >> .env
-          echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
-          echo "SERVICE_PORT=${{ secrets.SERVICE_PORT }}" >> .env
-          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env
+          echo "${{ secrets.ENV_FILE }}" >> .env
           cat .env
       # Step 4: Verify Docker Compose Installation
       - name: CHECK FILES
