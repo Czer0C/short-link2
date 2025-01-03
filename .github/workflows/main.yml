@@ -21,14 +21,23 @@ jobs:
       - name: Login Docker
         run: echo ${{ secrets.D_PASSWORD }} | docker login ghcr.io -u ${{ secrets.D_NAME }} --password-stdin
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.D_NAME }}
-          password: ${{ secrets.D_PASSWORD }}
+      # - name: Log in to GitHub Container Registry
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.D_NAME }}
+      #     password: ${{ secrets.D_PASSWORD }}
+
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/your-image:${{ github.sha }} .
+          
+      - name: Push Docker image to GitHub Container Registry
+        run: |
+          docker push ghcr.io/${{ github.repository }}/your-image:${{ github.sha }}
     #   # Step 2: Set up Docker
     #   - name: Set up Docker
     #     uses: docker/setup-buildx-action@v2
