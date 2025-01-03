@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Login Docker
         run: |
-          echo ${{ env }}
+          echo ${{ env.DOCKER_NAME }}
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
