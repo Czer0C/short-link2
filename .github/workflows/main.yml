@@ -20,9 +20,7 @@ jobs:
     steps:
       - name: Create .env File
         run: |
-          touch .env
-          echo "${{ secrets.ENV_FILE }}" >> .env
-          cat .env
+          echo $PAT
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
