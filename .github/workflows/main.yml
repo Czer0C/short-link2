@@ -17,12 +17,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-        DOCKER_NAME: "${{ env.DOCKER_NAME }}"
     steps:
       - name: Login Docker
-        run: |
-          echo $DOCKER_NAME
+        run: echo "Docker Name:${{ env.DOCKER_NAME }}"
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
