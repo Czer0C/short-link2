@@ -18,6 +18,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: check
+        run: echo ${{github.repository}}
+
       - name: Login Docker
         run: echo ${{ secrets.D_PASSWORD }} | docker login ghcr.io -u ${{ secrets.D_NAME }} --password-stdin
 
