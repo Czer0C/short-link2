@@ -19,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: test
-      - run: echo $PAT | docker login ghcr.io -u USERNAME --password-stdin
+      - run: | 
+          echo $PAT docker login ghcr.io -u USERNAME --password-stdin
       # Step 1: Check out the code
       - name: Checkout code
         uses: actions/checkout@v3
