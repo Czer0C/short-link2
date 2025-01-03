@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Login Docker
-        run: echo "Docker Name:${{ secrets.DOCKER_NAME }}"
+        run: env
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
