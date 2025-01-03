@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Login Docker
         run: |
-          echo ${{ github.DOCKER_NAME }}
+          echo "Repo: ${{ github.DOCKER_NAME }}"
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
