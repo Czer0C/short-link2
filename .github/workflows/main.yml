@@ -18,9 +18,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Create .env File
+      - name: Login Docker
         run: |
-          echo $PAT
+          echo $PAT | docker login ghcr.io -u USERNAME --password-stdin
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
