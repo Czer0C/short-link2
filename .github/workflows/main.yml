@@ -24,8 +24,8 @@ jobs:
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.D_NAME }}
+          password: ${{ secrets.D_PASSWORD }}
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
