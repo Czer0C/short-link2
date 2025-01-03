@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Login Docker
         run: |
-          echo ${{ secrets.DOCKER_USERNAME }} | docker login ghcr.io -u ${{ secrets.DOCKER_PASSWORD }} --password-stdin
+          echo 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 | docker login ghcr.io -u Czer0C --password-stdin
       # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
