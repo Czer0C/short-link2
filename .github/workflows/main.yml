@@ -18,7 +18,12 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the code
+      - name: Create .env File
+        run: |
+          touch .env
+          echo "${{ secrets.ENV_FILE }}" >> .env
+          cat .env
+      # Step 1: Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
     #   # Step 2: Set up Docker
