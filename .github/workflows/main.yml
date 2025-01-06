@@ -18,6 +18,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      # LOGIN
       - name: Login Docker
         run: echo ${{ secrets.D_PASSWORD }} | docker login ghcr.io -u ${{ secrets.D_NAME }} --password-stdin
 
@@ -27,10 +28,17 @@ jobs:
       #     username: ${{ secrets.D_NAME }}
       #     password: ${{ secrets.D_PASSWORD }}
 
-      # Step 1: Check out the code   
+      # Check out the code   
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Setup .env
+      - name: Create .env File
+        run: |
+          touch .env
+          echo "${{ secrets.ENV_FILE }}" >> .env
+          cat .env
+      
       - name: Set image tag
         run: echo "IMAGE_TAG=ghcr.io/czer0c/short-link2/your-image:${{ github.sha }}" >> $GITHUB_ENV
 
